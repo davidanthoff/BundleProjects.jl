@@ -1,0 +1,3 @@
+module VendorPackages
+
+end # module
