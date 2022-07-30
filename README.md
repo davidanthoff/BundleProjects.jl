@@ -1,5 +1,9 @@
 # BundleProjects.jl
 
+[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+![](https://github.com/davidanthoff/BundleProjects.jl/workflows/Run%20tests/badge.svg)
+[![codecov](https://codecov.io/gh/davidanthoff/BundleProjects.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/davidanthoff/BundleProjects.jl)
+
 ## Overview
 
 This package makes it easy to take a Julia project, and bundle a specific list of packages that are
