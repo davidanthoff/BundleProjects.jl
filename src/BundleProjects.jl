@@ -21,6 +21,10 @@ function bundle(output_path::FilePathsBase.SystemPath; packages_dir::Union{Nothi
 
     manifest_content = TOML.parsefile(string(project_paths.manifest))
 
+    if get(manifest_content, "manifest_format", "") == "2.0"
+        manifest_content = manifest_content["deps"]
+    end
+
     for pkg in packages
         if !haskey(manifest_content, pkg)
             error("Package $pkg not found in project manifest file.")
