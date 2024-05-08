@@ -1,8 +1,8 @@
 module BundleProjects
 
-export bundle
+export bundle, set_bundle_packages
 
-import FilePathsBase, TOML, URIs, LibGit2, RegistryInstances
+import FilePathsBase, TOML, URIs, LibGit2, RegistryInstances, Preferences
 
 using FilePathsBase: cwd, absolute, exists, mktmpdir
 using URIs: URI
@@ -14,7 +14,15 @@ function find_project(path)
     return project_file_path===nothing || manifest_file_path===nothing ? nothing : (project=project_file_path, manifest=manifest_file_path)
 end
 
-function bundle(output_path::FilePathsBase.SystemPath; packages_dir::Union{Nothing,String}=nothing, packages::Vector{String}=[], force::Bool=false)
+function set_bundle_packages(packages::Vector{String})
+    Preferences.set_preferences!(BundleProjects, "packages" => packages, export_prefs = true)
+end
+
+function bundle(output_path::FilePathsBase.SystemPath; packages_dir::Union{Nothing,String}=nothing, packages::Union{Nothing,Vector{String}}=nothing, force::Bool=false)
+    if packages===nothing
+        packages = Preferences.load_preference(BundleProjects, "packages", nothing)
+    end
+
     project_paths = find_project(cwd())
 
     project_paths===nothing && error("No project found.")
@@ -25,13 +33,15 @@ function bundle(output_path::FilePathsBase.SystemPath; packages_dir::Union{Nothi
         manifest_content = manifest_content["deps"]
     end
 
-    for pkg in packages
-        if !haskey(manifest_content, pkg)
-            error("Package $pkg not found in project manifest file.")
-        end
+    if packages!==nothing
+        for pkg in packages
+            if !haskey(manifest_content, pkg)
+                error("Package $pkg not found in project manifest file.")
+            end
 
-        if !haskey(manifest_content[pkg][1], "git-tree-sha1")
-            error("Package $pkg does not have a `git-tree-sha1` element in the project manifest file.")
+            if !haskey(manifest_content[pkg][1], "git-tree-sha1")
+                error("Package $pkg does not have a `git-tree-sha1` element in the project manifest file.")
+            end
         end
     end
 
@@ -64,7 +74,7 @@ function bundle(output_path::FilePathsBase.SystemPath; packages_dir::Union{Nothi
             rm(joinpath(temp_output_path, ".git"), recursive = true)
         end
 
-        if length(packages)>0            
+        if packages!==nothing && length(packages)>0            
             mkpath(abs_packages_path)
 
             for pkg in packages
